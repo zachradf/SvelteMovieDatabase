@@ -8,9 +8,11 @@
     let movies: Movie[] = [];
     let movieCards: { component: typeof MovieCard; props: { movie: Movie } }[] = [];
     let loading = false;
+    let query = "";
   
     async function fetchMovies(page: number) {
       const { results } = await getMovies(page);
+      console.log('THIS IS RESULTS______', results)
       return results;
     }
   
@@ -55,7 +57,7 @@
       return () => window.removeEventListener("scroll", handleScroll);
     });
 
-    function handleSearch(event: Event) {
+  function handleSearch(event: Event) {
     query = (event.target as HTMLInputElement).value.toLowerCase();
   }
 
@@ -72,7 +74,7 @@
   <label for="search-input">Search by title:</label>
   <input id="search-input" type="text" on:input={handleSearch} />
 </div>  
-  <div class="movie-grid" style="overflow-y: auto">
+  <div class="movie-grid" >
     {#each movieCards as { component, props }}
     <svelte:component this={component} {...props} />
       {:else}
@@ -88,12 +90,12 @@
       display: grid;
       gap: 20px;
       border-radius: 0.5rem;
-      /* border: 9px solid;
-      border-image: linear-gradient(to top, #401856 0%, rgb(254, 244, 254) 100%); */
+      height: auto;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-auto-rows: minmax(100px, auto);
       background-color: #401856;
-      overflow-y: auto;
     }
+
   </style>
    
     <!-- <script lang="ts">
