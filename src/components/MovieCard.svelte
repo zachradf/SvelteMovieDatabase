@@ -1,15 +1,23 @@
    <script lang="ts">
     import type { Movie } from "../types/types";
     import { Link, navigate } from "svelte-routing";
+    import getDetails from "../functions/movieApi";
     import { onMount } from "svelte";
     
     export let movie: Movie;
     
     let expanded = false;
     
+    async function fetchMoviesDetails(id: number) {
+      const { results } = await getDetails(id);
+      console.log('THIS IS RESULTS______', results)
+      return results;
+    }
+
     function handleClick() {
       navigate(`/movies/${movie.id}`);
       expanded = !expanded;
+      
       // const body = document.querySelector("body");
       // body.style.overflow = expanded ? "auto" : "auto";
       // body.className = expanded ? "full-width" : "movie-card";
