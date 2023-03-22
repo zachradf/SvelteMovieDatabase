@@ -81,7 +81,6 @@ function handleSearch(event: Event) {
   });
   }
   query = (event.target as HTMLInputElement).value.toLowerCase();
-  console.log('THIS IS QUERY______', query);
 }
 
 //!TO DO write this function to filter to include matching genres

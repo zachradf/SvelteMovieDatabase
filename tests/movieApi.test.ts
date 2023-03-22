@@ -1,5 +1,5 @@
 import { getMovies } from '../src/functions/movieApi';
-import {describe, expect, it, test} from 'vitest';
+import {describe, expect, it} from 'vitest';
 
 describe('getMovies', () => {
   it('returns a valid response', async () => {
