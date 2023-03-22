@@ -1,4 +1,4 @@
-import { getMovies } from './functions/movieApi';
+import { getMovies } from '../src/functions/movieApi';
 import {describe, expect, it, test} from 'vitest';
 
 describe('getMovies', () => {
