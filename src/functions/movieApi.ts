@@ -15,13 +15,13 @@ export async function getMovies(page: number): Promise<MovieApiResponse> {
 
   return await response.json();
 }
-console.log(getMovies(1))
+
 //function to fetch movie details about a single movie
 export async function getDetails(id: number): Promise<MovieApiResponse> {//!TO DO change this to the correct type
   const response = await fetch(
     `https://api.themoviedb.org/3/movie/${id}?api_key=${PUBLIC_API_KEY}&language=en-US`
   )
-  console.log("THIS IS RESPONSE IN GET MOVIES",response)
+
   if (!response.ok) {
     throw new Error(`Failed to fetch movies: ${response.status} ${response.statusText}`);
   }

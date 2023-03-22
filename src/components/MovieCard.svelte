@@ -3,11 +3,14 @@
 	import { navigate } from 'svelte-routing';
 	import { getDetails } from '../functions/movieApi';
   import { writable } from 'svelte/store';
+	import { onMount } from 'svelte';
+  import {MovieDetails} from './MovieDetails.svelte';
 
 	export let movie: Movie;
 
 	let expanded = false;
 	let movieDetails = writable({});
+  let loading = true;
 
 	async function fetchMoviesDetails(id: number) {//fires the getDetails function
 		const { results } = await getDetails(id);
@@ -24,10 +27,19 @@
 		expanded = !expanded;
 
 		if (expanded) {//fetches movieDetails if card is being expanded
-			 const details = await fetchMoviesDetails(movie.id);
-       movieDetails.set(JSON.stringify(details));
+			//  const details = await fetchMoviesDetails(movie.id);
+      //  movieDetails.set(JSON.stringify(details));
+       loading = false;
 		}
 	}
+
+  onMount(async () => {
+    
+       const details = await fetchMoviesDetails(movie.id);
+       movieDetails.set(JSON.stringify(details));
+       console.log('THIS IS MOVIEDETAILS', movieDetails);
+    
+  });
 
 </script>
 
@@ -48,12 +60,10 @@
 		<p>Overview: {movie.overview}</p>
 		<p>Rating: {movie.vote_average}</p>
 		<p>Number of Reviews: {movie.vote_count}</p>
-    {#if !$movieDetails}
-    {#await $movieDetails}
-      <p>Loading...</p>
-    {:then details}
-      <p>movieDetails: {JSON.stringify(details)}</p>
-    {/await}
+    {#if loading === true}
+    <p>Loading...</p>
+  {:else}
+    <p>movieDetails: {movieDetails}</p>
   {/if}
 		<button class="close-button" on:click|stopPropagation={handleClick}>&times;</button>
 	{/if}
