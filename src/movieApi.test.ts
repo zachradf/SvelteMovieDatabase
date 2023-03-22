@@ -1,4 +1,3 @@
-// import { test } from 'vite-jest';
 import { getMovies } from './functions/movieApi';
 import {describe, expect, it, test} from 'vitest';
 
