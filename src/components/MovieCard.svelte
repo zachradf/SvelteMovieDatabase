@@ -1,71 +1,89 @@
 <script lang="ts">
 	import type { Movie } from '../types/types';
 	import { navigate } from 'svelte-routing';
-	import { getDetails } from '../functions/movieApi';
-  import { writable } from 'svelte/store';
-	import { onMount } from 'svelte';
-  import {MovieDetails} from './MovieDetails.svelte';
 
+  export let expanded: boolean
 	export let movie: Movie;
+  export let movieDetails: any;
 
-	let expanded = false;
-	let movieDetails = writable({});
+  let notableCast = false
   let loading = true;
-
-	async function fetchMoviesDetails(id: number) {//fires the getDetails function
-		const { results } = await getDetails(id);
-		return results;
-	}
+  let directors: { name: string; }[] = getDirectors();
 
 	async function handleClick() {
-    if(expanded){//returning to homepage
-      navigate(`/`)
-    } else{//navigates to specific movie card
-      navigate(`/movies/${movie.id}`);  
+    //navigates to specific movie card
+    navigate(`/movies/${movie.id}`);  
+    if(expanded){
+      handleClose()
+    } else {
+		expanded = true;
+    loading = false;
     }
-
-		expanded = !expanded;
-
-		if (expanded) {//fetches movieDetails if card is being expanded
-			//  const details = await fetchMoviesDetails(movie.id);
-      //  movieDetails.set(JSON.stringify(details));
-       loading = false;
-		}
+		
 	}
 
-  onMount(async () => {
-    
-       const details = await fetchMoviesDetails(movie.id);
-       movieDetails.set(JSON.stringify(details));
-       console.log('THIS IS MOVIEDETAILS', movieDetails);
-    
-  });
+  function handleClose(){
+    navigate(`/`)
+    expanded = false;
+    notableCast = false;
+  }
+  function toggleNotableCast(){
+    notableCast = !notableCast;
+    console.log('NOTABLE CAST', notableCast)
+  }
+
+  function getDirectors(){
+    return movieDetails.credits.crew.filter((crewMember) => crewMember.job === 'Director')
+  }
 
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="movie-card" on:click={handleClick}>
+<div class="movie-card">
 	{#if movie.poster_path}
 		<img
 			src={`https://image.tmdb.org/t/p/w185${movie.poster_path}`}
 			alt={`Poster for ${movie.title}`}
+      on:click= {handleClick}
 		/>
 	{:else}
-		<div class="missing-poster">No poster available</div>
+		<div class="missing-poster" on:click={handleClick}>No poster available</div>
 	{/if}
-    <h2>{movie.title}</h2>
+    <h2 on:click= {handleClick}>{movie.title}</h2>
     <p>Release date: {movie.release_date}</p>
-    <p>Genres: {movie.genre_ids.join(', ')}</p>
+    <p2>Genres:
+      {#if !expanded}
+      <p3>{movieDetails.genres[0].name}</p3>
+      {:else}
+      {#each movieDetails.genres as genre}
+      <li>{genre.name}</li>
+      {/each}
+      {/if}
+
+    </p2>
 	{#if expanded} 
 		<p>Overview: {movie.overview}</p>
-		<p>Rating: {movie.vote_average}</p>
-		<p>Number of Reviews: {movie.vote_count}</p>
+		<p>Rating: {movie.vote_average} ({movie.vote_count})</p>
     {#if loading === true}
     <p>Loading...</p>
   {:else}
-    <p>movieDetails: {movieDetails}</p>
+  <span>
+    <button class="cast-button" on:click={toggleNotableCast}>Notable Cast and Crew</button>
+  </span>
+    {#if notableCast === true}
+    <div>    
+      <p> Director: {directors[0].name}</p>
+    </div>
+    <ul>
+    <li> Cast: {movieDetails.credits.cast[0].name}</li><img src={`https://image.tmdb.org/t/p/w92${movieDetails.credits.cast[0].profile_path}`} alt={'actor profile picture'}/>
+    <li> Cast: {movieDetails.credits.cast[1].name}</li><img src={`https://image.tmdb.org/t/p/w92${movieDetails.credits.cast[1].profile_path}`} alt={'actor profile picture'}/>
+    <li> Cast: {movieDetails.credits.cast[2].name}</li><img src={`https://image.tmdb.org/t/p/w92${movieDetails.credits.cast[2].profile_path}`} alt={'actor profile picture'}/>
+    <li> Cast: {movieDetails.credits.cast[3].name}</li><img src={`https://image.tmdb.org/t/p/w92${movieDetails.credits.cast[3].profile_path}`} alt={'actor profile picture'}/>
+    <li> Cast: {movieDetails.credits.cast[4].name}</li><img src={`https://image.tmdb.org/t/p/w92${movieDetails.credits.cast[4].profile_path}`} alt={'actor profile picture'}/>
+  </ul>
+    {/if}
   {/if}
-		<button class="close-button" on:click|stopPropagation={handleClick}>&times;</button>
+		<button class="close-button" on:click|stopPropagation={handleClose}>&times;</button>
 	{/if}
 </div>
 
@@ -94,11 +112,17 @@
 	.movie-card p {
 		text-align: left;
 		margin: 0.5rem 0;
-    max-width: 100%;
+    max-width: 50%;
 		background-color: #401856;
 		padding: 10px;
 	}
-
+	.movie-card p3 {
+		text-align: left;
+		margin: 0.5rem 0;
+    max-width: 100px;
+		background-color: #401856;
+		padding: 10px;
+	}
 	.movie-card img {
 		border-radius: 0.25rem;
     max-width: 200px;
@@ -122,8 +146,23 @@
 		color: white;
 		border: none;
 		font-size: 1.5rem;
+    margin: 1%;
 		padding: 0.5rem;
 		cursor: pointer;
 	}
+  .cast-button {
+  background: none;
+  border: none;
+  color: #ccc;
+  font-size: 16px;
+  font-weight: bold;
+  text-decoration: underline;
+  transition: color 0.3s ease;
+}
+
+.cast-button:hover {
+  color: #fffafa;
+  transform: scale(1.05);
+}
   
 </style>

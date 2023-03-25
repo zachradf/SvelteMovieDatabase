@@ -1,22 +1,44 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { getMovies } from "../functions/movieApi";
-  import type { Movie } from "../types/types";
+  import { getMovies, getDetails } from "../functions/movieApi";
+  import type { Movie, MovieCards } from "../types/types";
   import MovieCard from "./MovieCard.svelte";
 
-  const PAGE_SIZE = 50;
-  let movies: Movie[] = [];
-  let movieCards: { component: typeof MovieCard; props: { movie: Movie } }[] = [];
-  let loading = false;
-  let query = "";
 
-  async function fetchMovies(page: number) {//fires the getMovie function
-    const { results } = await getMovies(page);
-    //!TO DO type results
-    return results;
+  const PAGE_SIZE = 50;
+  let results: Movie[] = [];
+  let resultsArray: Movie[] = [];
+  let loading = false;
+  let query: string = "";
+  let movieCards: MovieCards = []
+  let allowScroll: boolean = true;
+  
+
+
+  async function fetchMovies(page: number) {
+    // console.log('MOVIE array IN FETCH MOVIES1', movieArray)
+   ({ results } = await getMovies(page));
+  // resultsArray.push(...results)
+  resultsArray = [...resultsArray, ...results]
+  // console.log('THIS IS RESULTS ', resultsArray)
+  const moviesArray = [];
+  for (const movie of results) {
+    const details = await getDetails(movie.id);
+    // console.log('THIS IS FETCH MOVIE DETAILS', moviesArray)
+    moviesArray.push({
+    component: MovieCard,
+    props: {
+      movie,
+      expanded: false,
+      movieDetails: details,
+    },
+  });
   }
+  return moviesArray;
+}
 
   async function loadMoreMovies() {
+    console.log('load more movies')
     //this conditional throttles the requests
     if (loading) return;
     loading = true;
@@ -24,82 +46,53 @@
     const nextPage = Math.ceil(movieCards.length / PAGE_SIZE) + 1;
     //fetch new movies from the next page
     const newMovies = await fetchMovies(nextPage);
-    //add to movies array
-    movies = [...movies, ...newMovies];
-    //creates movieCard components and adds to movieCards array
-    movieCards = [
-      ...movieCards,
-      ...newMovies.map((movie) => ({
-        component: MovieCard,
-        props: {
-          movie,
-          expanded: false,
-        },
-      })),
-    ];
+    console.log('THIS IS NEW MOVIES', newMovies)
+    movieCards = [...movieCards, ...newMovies];
     loading = false;
+  }
+
+  function genreSearch(genreObj: {name: string}){//searches for matching genres
+    return genreObj.name.toLowerCase() === query
   }
 
   function handleScroll() {//infinite scroll, fires loadMoreMovies() at the bottom of the page
     const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+    if(!allowScroll) return;
     if (scrollTop + clientHeight >= scrollHeight - 50) {
       loadMoreMovies();
     }
   }
 
-onMount(() => {
-  //Initial fetch request for movies
-  //Populates MovieCards array
-  fetchMovies(1).then((results) => {
-    movies = results;
-    movieCards = results.map((movie) => ({
-      component: MovieCard,
-      props: {
-        movie,
-        expanded: false,
-      },
-    }));
-  });
-  //for infinite scroll 
+
+onMount(async () => {
+  const initialMovies = await fetchMovies(1);
+  console.log('THIS IS INITIAL MOVIES', initialMovies[0].props.movieDetails)
+  movieCards = initialMovies
   window.addEventListener("scroll", handleScroll);
-  //(LOOK MORE INTO THS)
   return () => window.removeEventListener("scroll", handleScroll);
 });
 
-function handleSearch(event: Event) {
-  if(query === ''){
-    movieCards = [];
-    fetchMovies(1).then((results) => {
-    movies = results;
-    movieCards = results.map((movie) => ({
-      component: MovieCard,
-      props: {
-        movie,
-        expanded: false,
-      },
-    }));
-  });
+async function handleSearch(event: Event) {
+  if(query === '' || undefined){
+    movieCards = await fetchMovies(1);
+    allowScroll = true;
+  } else {
+    allowScroll = false;
+    query = (event.target as HTMLInputElement).value.toLowerCase();
+    console.log('query', query)
   }
-  query = (event.target as HTMLInputElement).value.toLowerCase();
 }
 
 //!TO DO write this function to filter to include matching genres
-function filterMovies(movie: Movie) {
-  return movie.title.toLowerCase().includes(query) || movie.genre_ids.includes(parseInt(query));
+function filterMovies(movie: MovieCard) {
+  console.log('movie',movie.props.movieDetails.genres);
+  return movie.props.movie.title.toLowerCase().includes(query) || movie.props.movieDetails.genres.some(genreSearch);
 }
 
-function getFilteredMovies() {
-  movieCards = [];
-  movies = [...movies.filter((el)=>filterMovies(el))];
-  movieCards = movies.map((movie) => ({
-      component: MovieCard,
-      props: {
-        movie,
-        expanded: false,
-      },
-    }));
+async function getFilteredMovies() {
+  movieCards = movieCards.filter((el)=>filterMovies(el))
+  console.log('movies in filtermovies', movieCards)
 }
-
 </script>
 
   <div>

@@ -2,7 +2,7 @@ import type { MovieApiResponse } from "../types/types";
 import { PUBLIC_API_KEY } from "$env/static/public"
 
 //function to fetch all movies matching the specifications
-export async function getMovies(page: number): Promise<MovieApiResponse> {
+export async function getMovies(page: number) {
   const response = await fetch(
     //!TO DO figure out which of these is correct
     // `https://api.themoviedb.org/3/movie/popular?api_key=${PUBLIC_API_KEY}&language=en-US&page=${page}`
@@ -17,9 +17,10 @@ export async function getMovies(page: number): Promise<MovieApiResponse> {
 }
 
 //function to fetch movie details about a single movie
-export async function getDetails(id: number): Promise<MovieApiResponse> {//!TO DO change this to the correct type
+export async function getDetails(id: number) {//!TO DO change this to the correct type
   const response = await fetch(
-    `https://api.themoviedb.org/3/movie/${id}?api_key=${PUBLIC_API_KEY}&language=en-US`
+    // `https://api.themoviedb.org/3/movie/${id}?api_key=${PUBLIC_API_KEY}&language=en-US`
+    `https://api.themoviedb.org/3/movie/${id}?api_key=${PUBLIC_API_KEY}&language=en-US&append_to_response=credits&include_image_language=en,null&vote_count.gte=1000000&sort_by=popularity.desc&cast.profile_path.notnull`
   )
 
   if (!response.ok) {
