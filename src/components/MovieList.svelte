@@ -3,42 +3,42 @@
   import { getMovies, getDetails } from "../functions/movieApi";
   import type { Movie, MovieCards } from "../types/types";
   import MovieCard from "./MovieCard.svelte";
+  import Dropdown from "./DropDown.svelte";
 
-
-  const PAGE_SIZE = 50;
+  const PAGE_SIZE: number = 50;
+  const genresArray: string[] = []
   let results: Movie[] = [];
   let resultsArray: Movie[] = [];
-  let loading = false;
+  let loading: boolean = true;
   let query: string = "";
   let movieCards: MovieCards = []
   let allowScroll: boolean = true;
+  let selectedOption: string = 'No Filter';
+
   
+  async function fetchMovies(page: number): Promise<MovieCards> {
+    //fetches movies from the movie api
+    ({ results } = await getMovies(page));
+    //this is used when filtering by genre or title
+    resultsArray = [...resultsArray, ...results]
+    //moviesArray will be our array of movie cards
+    const moviesArray = [];
+    for (const movie of results) {
+      const details = await getDetails(movie.id);
+      moviesArray.push({
+      component: MovieCard,
+      props: {
+        movie,
+        expanded: false,
+        movieDetails: details,
+        },
+      });
+    }
 
-
-  async function fetchMovies(page: number) {
-    // console.log('MOVIE array IN FETCH MOVIES1', movieArray)
-   ({ results } = await getMovies(page));
-  // resultsArray.push(...results)
-  resultsArray = [...resultsArray, ...results]
-  // console.log('THIS IS RESULTS ', resultsArray)
-  const moviesArray = [];
-  for (const movie of results) {
-    const details = await getDetails(movie.id);
-    // console.log('THIS IS FETCH MOVIE DETAILS', moviesArray)
-    moviesArray.push({
-    component: MovieCard,
-    props: {
-      movie,
-      expanded: false,
-      movieDetails: details,
-    },
-  });
-  }
   return moviesArray;
 }
 
   async function loadMoreMovies() {
-    console.log('load more movies')
     //this conditional throttles the requests
     if (loading) return;
     loading = true;
@@ -46,7 +46,6 @@
     const nextPage = Math.ceil(movieCards.length / PAGE_SIZE) + 1;
     //fetch new movies from the next page
     const newMovies = await fetchMovies(nextPage);
-    console.log('THIS IS NEW MOVIES', newMovies)
     movieCards = [...movieCards, ...newMovies];
     loading = false;
   }
@@ -65,52 +64,87 @@
 
 
 onMount(async () => {
-  const initialMovies = await fetchMovies(1);
-  console.log('THIS IS INITIAL MOVIES', initialMovies[0].props.movieDetails)
+  const initialMovies = await fetchMovies(1);//loads initial movies
   movieCards = initialMovies
-  window.addEventListener("scroll", handleScroll);
+  window.addEventListener("scroll", handleScroll);//adds event listener for infinite scroll
   return () => window.removeEventListener("scroll", handleScroll);
 });
 
 async function handleSearch(event: Event) {
   if(query === '' || undefined){
-    movieCards = await fetchMovies(1);
+    movieCards = await fetchMovies(1);//resets movieCards to initial state
     allowScroll = true;
   } else {
-    allowScroll = false;
+    allowScroll = false; //disables infinite scroll while searching
     query = (event.target as HTMLInputElement).value.toLowerCase();
-    console.log('query', query)
   }
 }
 
-//!TO DO write this function to filter to include matching genres
 function filterMovies(movie: MovieCard) {
-  console.log('movie',movie.props.movieDetails.genres);
   return movie.props.movie.title.toLowerCase().includes(query) || movie.props.movieDetails.genres.some(genreSearch);
 }
 
-async function getFilteredMovies() {
+function getFilteredMovies() {
   movieCards = movieCards.filter((el)=>filterMovies(el))
-  console.log('movies in filtermovies', movieCards)
 }
+function genreFilter(genre: string){
+  if(movieCards.length === 0){
+
+  }
+  movieCards = movieCards.filter((el)=>el.props.movieDetails.genres.some((genreObj)=>genreObj.name === genre))
+}
+
+async function handleSelect(event: CustomEvent<{ option: string }>) {
+  if(event.detail.option === 'No Filter'){//resets movieCards to initial state
+    selectedOption = 'No Filter'
+    movieCards = await fetchMovies(1)
+    return;
+
+  } else if(selectedOption === 'No Filter') {//if no filter is currently selected
+    genresArray.push(event.detail.option);
+    selectedOption = event.detail.option;
+
+  } else {//if a filter is being added
+    if(genresArray.includes(event.detail.option)) return; //if the filter is already selected, do nothing
+    genresArray.push(event.detail.option);
+    selectedOption += ' + ' + event.detail.option;
+
+  }
+  genresArray.forEach((genre) => {
+    genreFilter(genre);
+  })
+    
+  }
+
 </script>
 
-  <div>
-    <span>
+  <div class='search-container'>
       <input type="text" placeholder="Search by title or genre" bind:value={query} on:input={handleSearch} />
+      <div>
       <button on:click={getFilteredMovies}>Search</button>
-   </span> 
+      <Dropdown
+      options={['Comedy', 'Drama', 'Thriller', 'Action', 'Animation', 'Science Fiction', 'Horror', 'No Filter']}
+      selectedOption={selectedOption}
+      on:select={handleSelect}
+    />
+  </div>
   </div>
   <div class="movie-grid" >
+  {#if movieCards.length === 0 && query !== '' || movieCards.length === 0 && selectedOption !== 'No Filter'}
+    <p>No Movies Matching Your Criteria</p>
+  {/if}
   {#each movieCards as { component, props }}
     <svelte:component this={component} {...props} />
     {:else}
+    {#if loading && query === '' && selectedOption === 'No Filter'}
         <p>Loading...</p>
+    {/if}
   {/each}
 </div>
 
 <style>
   .movie-grid {
+    color: whitesmoke;
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
@@ -119,6 +153,24 @@ async function getFilteredMovies() {
     height: auto;
     background-color: #401856;
   }
+  /* .movie-grid .p {
+    color: white
+  } */
+
+  .search-container {
+    align-items: center;
+    margin-bottom: 1rem;
+    min-width: 600px;
+  }
+  
+  .search-container > * {
+    margin-right: 0.5rem;
+  }
+  
+  .search-container input {
+    flex-grow: .25;
+  }
+  
   input {
     width: 30%;
     padding: 10px;
@@ -140,6 +192,7 @@ async function getFilteredMovies() {
     width: 30%;
     padding: 10px;
     background-color: #9707b7;
+    margin-bottom: 5px;
     color: #fff;
     border: none;
     border-radius: 5px;

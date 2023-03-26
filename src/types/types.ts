@@ -1,6 +1,4 @@
-// import type MovieCard__SvelteComponent_ from "../components/MovieCard.svelte";
-import type { SvelteComponent } from "svelte";
-
+import type MovieCard__SvelteComponent_ from "../components/MovieCard.svelte";
 
 export interface Movie {
     id: number;
@@ -24,7 +22,8 @@ export interface Movie {
     };
     
     export type MovieCard = MovieCardProps & {
-      component: typeof SvelteComponent;
+      component: typeof MovieCard__SvelteComponent_;
       props: MovieCardProps,
     };
+    // { component: typeof MovieCard__SvelteComponent_; props: { movie: Movie; expanded: boolean; movieDetails: any; }; }[]
     export type MovieCards = MovieCard[];

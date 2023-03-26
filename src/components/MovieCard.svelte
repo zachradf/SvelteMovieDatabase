@@ -6,13 +6,14 @@
 	export let movie: Movie;
   export let movieDetails: any;
 
-  let notableCast = false
-  let loading = true;
+  let notableCast: boolean  = false
+  let loading: boolean = true;
   let directors: { name: string; }[] = getDirectors();
 
 	async function handleClick() {
     //navigates to specific movie card
     navigate(`/movies/${movie.id}`);  
+    //toggles expanded state
     if(expanded){
       handleClose()
     } else {
@@ -23,13 +24,14 @@
 	}
 
   function handleClose(){
+    //returns to home page and toggles expanded state
     navigate(`/`)
     expanded = false;
     notableCast = false;
   }
+
   function toggleNotableCast(){
     notableCast = !notableCast;
-    console.log('NOTABLE CAST', notableCast)
   }
 
   function getDirectors(){
@@ -59,7 +61,6 @@
       <li>{genre.name}</li>
       {/each}
       {/if}
-
     </p2>
 	{#if expanded} 
 		<p>Overview: {movie.overview}</p>
