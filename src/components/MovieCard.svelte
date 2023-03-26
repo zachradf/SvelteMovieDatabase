@@ -20,12 +20,10 @@
 		expanded = true;
     loading = false;
     }
-		
 	}
 
   function handleClose(){
-    //returns to home page and toggles expanded state
-    navigate(`/`)
+    navigate(`/`)    //returns to "home page" and toggles expanded state
     expanded = false;
     notableCast = false;
   }
@@ -35,7 +33,7 @@
   }
 
   function getDirectors(){
-    return movieDetails.credits.crew.filter((crewMember) => crewMember.job === 'Director')
+    return movieDetails.credits.crew.filter((crewMember : {job: string}) => crewMember.job === 'Director')
   }
 
 </script>
@@ -74,6 +72,9 @@
     {#if notableCast === true}
     <div>    
       <p> Director: {directors[0].name}</p>
+      {#if directors.length > 1}
+      <p> Co-Director: {directors[1].name}</p>
+      {/if}
     </div>
     <ul>
     <li> Cast: {movieDetails.credits.cast[0].name}</li><img src={`https://image.tmdb.org/t/p/w92${movieDetails.credits.cast[0].profile_path}`} alt={'actor profile picture'}/>

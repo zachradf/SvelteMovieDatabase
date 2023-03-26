@@ -6,7 +6,7 @@
   import Dropdown from "./DropDown.svelte";
 
   const PAGE_SIZE: number = 50;
-  const genresArray: string[] = []
+  let genresArray: string[] = []
   let results: Movie[] = [];
   let resultsArray: Movie[] = [];
   let loading: boolean = true;
@@ -15,7 +15,7 @@
   let allowScroll: boolean = true;
   let selectedOption: string = 'No Filter';
 
-  
+//MOVIE LOADING FUNCTIONS
   async function fetchMovies(page: number): Promise<MovieCards> {
     //fetches movies from the movie api
     ({ results } = await getMovies(page));
@@ -35,8 +35,8 @@
       });
     }
 
-  return moviesArray;
-}
+    return moviesArray;
+  }
 
   async function loadMoreMovies() {
     //this conditional throttles the requests
@@ -50,8 +50,43 @@
     loading = false;
   }
 
-  function genreSearch(genreObj: {name: string}){//searches for matching genres
-    return genreObj.name.toLowerCase() === query
+//EVENT HANDLERS
+  function handleKeydown(event: KeyboardEvent) {
+    if (event.key === "Enter") {
+      getFilteredMovies();
+    }
+  }
+
+  async function handleSearch(event: Event) {
+    if(query === '' || undefined){
+      movieCards = await fetchMovies(1);//resets movieCards to initial state
+      allowScroll = true;
+    } else {
+      allowScroll = false; //disables infinite scroll while searching
+      query = (event.target as HTMLInputElement).value.toLowerCase();
+    }
+  }
+
+  async function handleSelect(event: CustomEvent<{ option: string }>) {
+    if(event.detail.option === 'No Filter'){//resets movieCards to initial state
+      selectedOption = 'No Filter'
+      genresArray = [];
+      movieCards = await fetchMovies(1)
+      return;
+
+    } else if(selectedOption === 'No Filter') {//if no filter is currently selected
+      genresArray.push(event.detail.option);
+      selectedOption = event.detail.option;
+
+    } else {//if a filter is being added
+      if(genresArray.includes(event.detail.option)) return; //if the filter is already selected, do nothing
+      genresArray.push(event.detail.option);
+      selectedOption += ' + ' + event.detail.option;
+
+    }
+    genresArray.forEach((genre) => {
+      genreFilter(genre);
+      })
   }
 
   function handleScroll() {//infinite scroll, fires loadMoreMovies() at the bottom of the page
@@ -61,65 +96,36 @@
       loadMoreMovies();
     }
   }
-
-
-onMount(async () => {
-  const initialMovies = await fetchMovies(1);//loads initial movies
-  movieCards = initialMovies
-  window.addEventListener("scroll", handleScroll);//adds event listener for infinite scroll
-  return () => window.removeEventListener("scroll", handleScroll);
-});
-
-async function handleSearch(event: Event) {
-  if(query === '' || undefined){
-    movieCards = await fetchMovies(1);//resets movieCards to initial state
-    allowScroll = true;
-  } else {
-    allowScroll = false; //disables infinite scroll while searching
-    query = (event.target as HTMLInputElement).value.toLowerCase();
+  
+//SEARCH AND FILTER FUNCTIONS
+  function genreSearch(genreObj: {name: string}){//searches for matching genres
+    return genreObj.name.toLowerCase() === query
   }
-}
 
-function filterMovies(movie: MovieCard) {
-  return movie.props.movie.title.toLowerCase().includes(query) || movie.props.movieDetails.genres.some(genreSearch);
-}
-
-function getFilteredMovies() {
-  movieCards = movieCards.filter((el)=>filterMovies(el))
-}
-function genreFilter(genre: string){
-  if(movieCards.length === 0){
-
+  function filterMovies(movie: MovieCard) {
+    return movie.props.movie.title.toLowerCase().includes(query) || movie.props.movieDetails.genres.some(genreSearch);
   }
-  movieCards = movieCards.filter((el)=>el.props.movieDetails.genres.some((genreObj)=>genreObj.name === genre))
-}
 
-async function handleSelect(event: CustomEvent<{ option: string }>) {
-  if(event.detail.option === 'No Filter'){//resets movieCards to initial state
-    selectedOption = 'No Filter'
-    movieCards = await fetchMovies(1)
-    return;
-
-  } else if(selectedOption === 'No Filter') {//if no filter is currently selected
-    genresArray.push(event.detail.option);
-    selectedOption = event.detail.option;
-
-  } else {//if a filter is being added
-    if(genresArray.includes(event.detail.option)) return; //if the filter is already selected, do nothing
-    genresArray.push(event.detail.option);
-    selectedOption += ' + ' + event.detail.option;
-
+  function getFilteredMovies() {
+    movieCards = movieCards.filter((el)=>filterMovies(el))
   }
-  genresArray.forEach((genre) => {
-    genreFilter(genre);
-  })
-    
+  
+  function genreFilter(genre: string){
+    movieCards = movieCards.filter((el)=>el.props.movieDetails.genres.some((genreObj)=>genreObj.name === genre))
   }
+
+//LIFECYCLE HOOKS
+  onMount(async () => {
+    movieCards = await fetchMovies(1);//loads initial movies
+    window.addEventListener("scroll", handleScroll);//adds event listener for infinite scroll
+    loading = false;
+    return () => window.removeEventListener("scroll", handleScroll);
+  });
 
 </script>
 
   <div class='search-container'>
-      <input type="text" placeholder="Search by title or genre" bind:value={query} on:input={handleSearch} />
+      <input type="text" placeholder="Search by title or genre" bind:value={query} on:input={handleSearch} on:keydown={handleKeydown} />
       <div>
       <button on:click={getFilteredMovies}>Search</button>
       <Dropdown
@@ -153,9 +159,6 @@ async function handleSelect(event: CustomEvent<{ option: string }>) {
     height: auto;
     background-color: #401856;
   }
-  /* .movie-grid .p {
-    color: white
-  } */
 
   .search-container {
     align-items: center;
