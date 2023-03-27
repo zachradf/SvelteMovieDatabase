@@ -91,6 +91,7 @@
 	{/if}
     <h2 on:click= {handleClick} style="max-width: {titleMaxWidth}" >{movie.title}</h2>
     <p style="max-width: {pMaxWidth}">Release date: {movie.release_date}</p>
+    <p style="max-width: {pMaxWidth}">Original Language: {movieDetails.original_language}</p>
     <p2 style="max-width: {pMaxWidth}">Genres:
       {#if !expanded}
       <p3>{movieDetails.genres[0].name}</p3>
