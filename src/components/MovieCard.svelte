@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { Movie } from '../types/types';
-	import { navigate } from 'svelte-routing';
+  import type { Movie } from '../types/types';
+  import { navigate } from 'svelte-routing';
 
   export let expanded: boolean;
-	export let movie: Movie;
+  export let movie: Movie;
   export let movieDetails: any; //TODO: type this
 
   let notableCast: boolean  = false;
