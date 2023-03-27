@@ -2,11 +2,11 @@
 	import type { Movie } from '../types/types';
 	import { navigate } from 'svelte-routing';
 
-  export let expanded: boolean
+  export let expanded: boolean;
 	export let movie: Movie;
   export let movieDetails: any; //TODO: type this
 
-  let notableCast: boolean  = false
+  let notableCast: boolean  = false;
   let loading: boolean = true;
   let directors: { name: string; }[] = getDirectors();
 
