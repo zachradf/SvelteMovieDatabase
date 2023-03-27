@@ -50,7 +50,7 @@
       handleClose()
 
     } else {
-      adjustViewport();
+      // adjustViewport();
       expanded = true;
       loading = false;
       titleMaxWidth = MAX_WIDTH.EXPANDED;
