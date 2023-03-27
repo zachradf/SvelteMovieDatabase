@@ -2,8 +2,8 @@
 	"extends": "./.svelte-kit/tsconfig.json",
 	"compilerOptions": {
 		"types": ["jest"],
-		"emitDeclarationOnly": true,
-		"declaration": false,
+		// "emitDeclarationOnly": true,
+		// "declaration": false,
 		"allowJs": true,
 		"checkJs": true,
 		"esModuleInterop": true,
