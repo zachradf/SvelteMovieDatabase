@@ -3,6 +3,7 @@
 	"compilerOptions": {
 		"types": ["jest"],
 		"emitDeclarationOnly": true,
+		"declaration": false,
 		"allowJs": true,
 		"checkJs": true,
 		"esModuleInterop": true,
