@@ -22,6 +22,6 @@ export async function getDetails(id: number) {
   if (!response.ok) {
     throw new Error(`Failed to fetch movies: ${response.status} ${response.statusText}`);
   }
-
+  
   return await response.json();
 }

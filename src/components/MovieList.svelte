@@ -52,9 +52,7 @@
 
 //EVENT HANDLERS
   function handleKeydown(event: KeyboardEvent) {
-    if (event.key === "Enter") {
-      getFilteredMovies();
-    }
+    if (event.key === "Enter") getFilteredMovies();
   }
 
   async function handleSearch(event: Event) {
@@ -70,6 +68,7 @@
   async function handleSelect(event: CustomEvent<{ option: string }>) {
     if(event.detail.option === 'No Filter'){//resets movieCards to initial state
       selectedOption = 'No Filter'
+      allowScroll = true;
       genresArray = [];
       movieCards = await fetchMovies(1)
       return;
@@ -77,11 +76,13 @@
     } else if(selectedOption === 'No Filter') {//if no filter is currently selected
       genresArray.push(event.detail.option);
       selectedOption = event.detail.option;
+      allowScroll = false;
 
     } else {//if a filter is being added
       if(genresArray.includes(event.detail.option)) return; //if the filter is already selected, do nothing
       genresArray.push(event.detail.option);
       selectedOption += ' + ' + event.detail.option;
+      allowScroll = false;
 
     }
     genresArray.forEach((genre) => {
@@ -96,7 +97,7 @@
       loadMoreMovies();
     }
   }
-  
+
 //SEARCH AND FILTER FUNCTIONS
   function genreSearch(genreObj: {name: string}){//searches for matching genres
     return genreObj.name.toLowerCase() === query
@@ -111,7 +112,7 @@
   }
   
   function genreFilter(genre: string){
-    movieCards = movieCards.filter((el)=>el.props.movieDetails.genres.some((genreObj)=>genreObj.name === genre))
+    movieCards = movieCards.filter((el)=>el.props.movieDetails.genres.some((genreObj: {name: string})=>genreObj.name === genre))
   }
 
 //LIFECYCLE HOOKS
@@ -119,7 +120,7 @@
     movieCards = await fetchMovies(1);//loads initial movies
     window.addEventListener("scroll", handleScroll);//adds event listener for infinite scroll
     loading = false;
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);//removes event listener on unmount
   });
 
 </script>
@@ -163,7 +164,8 @@
   .search-container {
     align-items: center;
     margin-bottom: 1rem;
-    min-width: 600px;
+    margin-left: 10px;
+    min-width: 150px;
   }
   
   .search-container > * {
@@ -176,6 +178,7 @@
   
   input {
     width: 30%;
+    min-width: 200px;
     padding: 10px;
     margin-bottom: 10px;
     border: 1px solid #ccc;

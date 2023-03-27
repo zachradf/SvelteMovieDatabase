@@ -1,11 +1,4 @@
 <script lang="ts">
-import { onMount } from "svelte";
-import {navigate} from 'svelte-routing';
-
-onMount(() => {
-    navigate('/');
-});
-
 </script>
 
 <h1>Welcome to the Movie Database API Homepage!</h1>

@@ -4,11 +4,43 @@
 
   export let expanded: boolean
 	export let movie: Movie;
-  export let movieDetails: any;
+  export let movieDetails: any; //TODO: type this
 
   let notableCast: boolean  = false
   let loading: boolean = true;
   let directors: { name: string; }[] = getDirectors();
+
+  const MAX_WIDTH: {NOT_EXPANDED: string, EXPANDED: string} = {
+    NOT_EXPANDED: "110px",
+    EXPANDED: "95%"
+  }
+  const P_MAX_WIDTH: {NOT_EXPANDED: string, EXPANDED: string} = {
+    NOT_EXPANDED: "50%",
+    EXPANDED: "90%"
+  }
+
+  let pMaxWidth: string = P_MAX_WIDTH.NOT_EXPANDED;
+  let titleMaxWidth: string = MAX_WIDTH.NOT_EXPANDED;
+
+  function adjustViewport(){
+    const header = document.getElementById('movie-card-' + movie.id);
+    const headerHeight = header ? header.getBoundingClientRect().height : 0;
+    const headerxAxis = header ? header.getBoundingClientRect().x : 0;
+
+    let adjustedOffset: number;
+    if(headerxAxis < 100){
+      adjustedOffset = .6
+    } else if(headerxAxis < 300) {
+      adjustedOffset = 1.35
+    } else {
+      adjustedOffset = 1.5
+    }
+
+    window.scrollTo({ // scroll to just below the header
+      top: window.pageYOffset + (adjustedOffset * headerHeight), // add a small offset
+      behavior: 'smooth' //adds a smooth scrolling animation
+    });
+  }
 
 	async function handleClick() {
     //navigates to specific movie card
@@ -16,16 +48,24 @@
     //toggles expanded state
     if(expanded){
       handleClose()
+
     } else {
-		expanded = true;
-    loading = false;
+      adjustViewport();
+      expanded = true;
+      loading = false;
+      titleMaxWidth = MAX_WIDTH.EXPANDED;
+      pMaxWidth = P_MAX_WIDTH.EXPANDED;
+
     }
 	}
 
   function handleClose(){
-    navigate(`/`)    //returns to "home page" and toggles expanded state
-    expanded = false;
+    navigate(`/`)    //returns to "home page" 
+
+    expanded = false; //toggles expanded state and settings
     notableCast = false;
+    titleMaxWidth = MAX_WIDTH.NOT_EXPANDED;
+    pMaxWidth = P_MAX_WIDTH.NOT_EXPANDED;
   }
 
   function toggleNotableCast(){
@@ -39,7 +79,7 @@
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="movie-card">
+<div class="movie-card" id="movie-card-{movie.id}">
 	{#if movie.poster_path}
 		<img
 			src={`https://image.tmdb.org/t/p/w185${movie.poster_path}`}
@@ -49,9 +89,9 @@
 	{:else}
 		<div class="missing-poster" on:click={handleClick}>No poster available</div>
 	{/if}
-    <h2 on:click= {handleClick}>{movie.title}</h2>
-    <p>Release date: {movie.release_date}</p>
-    <p2>Genres:
+    <h2 on:click= {handleClick} style="max-width: {titleMaxWidth}" >{movie.title}</h2>
+    <p style="max-width: {pMaxWidth}">Release date: {movie.release_date}</p>
+    <p2 style="max-width: {pMaxWidth}">Genres:
       {#if !expanded}
       <p3>{movieDetails.genres[0].name}</p3>
       {:else}
@@ -61,8 +101,8 @@
       {/if}
     </p2>
 	{#if expanded} 
-		<p>Overview: {movie.overview}</p>
-		<p>Rating: {movie.vote_average} ({movie.vote_count})</p>
+		<p style="max-width: {pMaxWidth}">Overview: {movie.overview}</p>
+		<p style="max-width: {pMaxWidth}">Rating: {movie.vote_average} ({movie.vote_count})</p>
     {#if loading === true}
     <p>Loading...</p>
   {:else}
@@ -108,23 +148,30 @@
 
 	.movie-card h2 {
     text-align: left;
-    max-width: 110px;
+    overflow-x: visible;
   }
 
 	.movie-card p {
 		text-align: left;
 		margin: 0.5rem 0;
-    max-width: 50%;
 		background-color: #401856;
 		padding: 10px;
 	}
+
+  .movie-card p2 {
+    text-align: left;
+    margin: 0.5rem 0;
+    background-color: #401856;
+    padding: 10px;
+  }
+
 	.movie-card p3 {
 		text-align: left;
 		margin: 0.5rem 0;
     max-width: 100px;
 		background-color: #401856;
-		padding: 10px;
 	}
+
 	.movie-card img {
 		border-radius: 0.25rem;
     max-width: 200px;
@@ -143,7 +190,7 @@
 		color: #333;
 	}
 
-	.close-button {
+ .close-button {
 		background-color: #290f37;
 		color: white;
 		border: none;
@@ -152,19 +199,20 @@
 		padding: 0.5rem;
 		cursor: pointer;
 	}
-  .cast-button {
-  background: none;
-  border: none;
-  color: #ccc;
-  font-size: 16px;
-  font-weight: bold;
-  text-decoration: underline;
-  transition: color 0.3s ease;
-}
 
-.cast-button:hover {
-  color: #fffafa;
-  transform: scale(1.05);
-}
+  .cast-button {
+    background: none;
+    border: none;
+    color: #ccc;
+    font-size: 16px;
+    font-weight: bold;
+    text-decoration: underline;
+    transition: color 0.3s ease;
+  }
+
+  .cast-button:hover {
+    color: #fffafa;
+    transform: scale(1.05);
+  }
   
 </style>
