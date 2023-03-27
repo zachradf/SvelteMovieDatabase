@@ -1,5 +1,4 @@
 import type MovieCard__SvelteComponent_ from "../components/MovieCard.svelte";
-import type  RouteParams from "@sveltech/routify";
 
 export interface Movie {
   id: number;
@@ -11,10 +10,6 @@ export interface Movie {
   overview: string;
   vote_average: number;
   vote_count: number;
-}
-
-export interface MovieParams extends RouteParams {
-  movieID: string;
 }
 
 export interface MovieApiResponse {
